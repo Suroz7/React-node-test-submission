@@ -1,18 +1,25 @@
 const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-        res.status(401).json({ message: "Authentication failed , Token missing" });
+    if (!authHeader) {
+        return res.status(401).json({ message: "Authentication failed. Token missing." });
     }
+
+    const token = authHeader.startsWith('Bearer ')
+        ? authHeader.split(' ')[1]
+        : authHeader;
+
     try {
-        const decode = jwt.verify(token, 'secret_key')
-        req.user = decode
+        // Use environment variable for secret:
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
+        req.user = decoded;
         next();
-    } catch (err) {
-        res.status(500).json({ message: 'Authentication failed. Invalid token.' })
+    } catch (error) {
+        console.error('Auth Middleware Error:', error);
+        return res.status(401).json({ message: "Authentication failed. Invalid token." });
     }
-}
+};
 
-module.exports = auth
+module.exports = auth;

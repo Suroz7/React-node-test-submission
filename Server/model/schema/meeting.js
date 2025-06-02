@@ -14,11 +14,10 @@ const meetingHistory = new mongoose.Schema({
     related: String,
     dateTime: String,
     notes: String,
-    // meetingReminders: { type: String, required: true },
     createBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        require: true,
+        required: true,
     },
     timestamp: {
         type: Date,
@@ -27,7 +26,7 @@ const meetingHistory = new mongoose.Schema({
     deleted: {
         type: Boolean,
         default: false,
-    },
-})
+    }
+});
 
-module.exports = mongoose.model('Meetings', meetingHistory, 'Meetings');
+module.exports = mongoose.model('Meeting', meetingHistory);

@@ -1,42 +1,51 @@
 const express = require('express');
-const db = require('./db/config')
+const connectDB = require('./db/config');
 const route = require('./controllers/route');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { initializeLeadSchema } = require('./model/schema/lead');
 
+require('dotenv').config();
 
-const port = 5001
-require('dotenv').config()
+// Import and register models BEFORE using them
+require('./model/schema/user');
+require('./model/schema/contact');
+require('./model/schema/lead');
+require('./model/schema/meeting');
 
-const fs = require('fs');
-const path = require('path');
-
-//Setup Express App
 const app = express();
+const port = 5001;
+
 // Middleware
 app.use(bodyParser.json());
-// Set up CORS  
-app.use(cors())
-//API Routes
-app.use('/api', route);
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:4000'],
+    credentials: true,
+}));
 
-
-app.get('/', async (req, res) => {
-    res.send('Welcome to my world...')
+app.get('/', (req, res) => {
+    res.send('Welcome to my world...');
 });
 
-// Get port from environment and store in Express.
+// Connect to MongoDB and initialize schema before starting server
+(async () => {
+    try {
+        console.log(' Connecting to database...');
+        await connectDB();
+        console.log(' MongoDB connected.');
 
-const server = app.listen(port, () => {
-    const protocol = (process.env.HTTPS === true || process.env.NODE_ENV === 'production') ? 'https' : 'http';
-    const { address, port } = server.address();
-    const host = address === '::' ? '127.0.0.1' : address;
-    console.log(`Server listening at ${protocol}://${host}:${port}/`);
-});
+        console.log(' Initializing lead schema...');
+        await initializeLeadSchema();
+        console.log(' Lead schema initialized.');
 
+        // Mount routes after initialization
+        app.use('/api', route);
 
-// Connect to MongoDB
-const DATABASE_URL = process.env.DB_URL || 'mongodb://127.0.0.1:27017'
-const DATABASE = process.env.DB || 'Prolink'
-
-db(DATABASE_URL, DATABASE);
+        app.listen(port, () => {
+            const protocol = (process.env.HTTPS === "true" || process.env.NODE_ENV === 'production') ? 'https' : 'http';
+            console.log(` Server listening at ${protocol}://127.0.0.1:${port}/`);
+        });
+    } catch (err) {
+        console.error(' Startup failed:', err);
+    }
+})();

@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { MeetingSchema } from 'schema';
 import { getApi, postApi } from 'services/api';
 
+
 const AddMeeting = (props) => {
     const { onClose, isOpen, setAction, from, fetchData, view } = props
     const [leaddata, setLeadData] = useState([])
@@ -36,28 +37,78 @@ const AddMeeting = (props) => {
         related: props.leadContect === 'contactView' ? 'Contact' : props.leadContect === 'leadView' ? 'Lead' : 'None',
         dateTime: '',
         notes: '',
-        createBy: user?._id,
+        createBy: user?._id, // <-- Make sure this is set and valid
     }
 
     const formik = useFormik({
         initialValues: initialValues,
         validationSchema: MeetingSchema,
         onSubmit: (values, { resetForm }) => {
-            
+            AddData();
         },
     });
     const { errors, touched, values, handleBlur, handleChange, handleSubmit, setFieldValue } = formik
 
     const AddData = async () => {
-
+        try {
+            setIsLoding(true);
+    
+            // Validation: check required fields and ObjectId format
+            if (!values.agenda || !values.dateTime || !values.createBy) {
+                toast.error('Agenda, DateTime, and Created By are required');
+                setIsLoding(false);
+                return;
+            }
+            // Optionally, validate ObjectId format using a regex
+            const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+            if (!objectIdRegex.test(values.createBy)) {
+                toast.error('Invalid User ID');
+                setIsLoding(false);
+                return;
+            }
+            if (values.attendes.some(id => !objectIdRegex.test(id)) ||
+                values.attendesLead.some(id => !objectIdRegex.test(id))) {
+                toast.error('Invalid Contact/Lead ID');
+                setIsLoding(false);
+                return;
+            }
+    
+            let response = await postApi('api/meeting/add', values);
+            if (response.status === 200) {
+                toast.success('Meeting created successfully');
+                setAction((pre) => !pre);
+                formik.resetForm();
+                onClose();
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to create meeting');
+        } finally {
+            setIsLoding(false);
+        }
+    };
+    const fetchAllData = async () => {
+        try {
+            setIsLoding(true);
+            if (values.related === "Contact" && contactdata.length === 0) {
+                const result = await getApi(user.role === 'superAdmin' ? 'api/contact/' : `api/contact/?createBy=${user._id}`);
+                setContactData(result?.data);
+            } else if (values.related === "Lead" && leaddata.length === 0) {
+                const result = await getApi(user.role === 'superAdmin' ? 'api/lead/' : `api/lead/?createBy=${user._id}`);
+                setLeadData(result?.data);
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Error fetching data');
+        } finally {
+            setIsLoding(false);
+        }
     };
 
-    const fetchAllData = async () => {
-        
-    }
-
     useEffect(() => {
-
+        if (values.related !== 'None') {
+            fetchAllData();
+        }
     }, [props.id, values.related])
 
     const extractLabels = (selectedItems) => {
@@ -203,4 +254,3 @@ const AddMeeting = (props) => {
 }
 
 export default AddMeeting
-

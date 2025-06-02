@@ -7,10 +7,10 @@ const fetchSchemaFields = async () => {
 
 const leadSchema = new mongoose.Schema({
     // // Lead Information:
-    // leadName: String,
-    // leadEmail: String,
-    // leadPhoneNumber: String,
-    // leadAddress: String,
+     leadName: String,
+     leadEmail: String,
+     leadPhoneNumber: String,
+     leadAddress: String,
     // // Lead Source and Details:
     // leadSource: String,
     // leadStatus: String,
@@ -64,5 +64,5 @@ const initializeLeadSchema = async () => {
     });
 };
 
-const Lead = mongoose.model('Leads', leadSchema, 'Leads');
+const Lead = mongoose.model('Lead', leadSchema, 'Leads');
 module.exports = { Lead, initializeLeadSchema };

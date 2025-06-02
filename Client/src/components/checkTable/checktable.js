@@ -310,6 +310,9 @@ const CommonCheckTable = (props) => {
             setCsvColumns([...tempCsvColumns])
         }
     }, [selectedColumns]);
+
+  
+
     return (
         <>
             <Card

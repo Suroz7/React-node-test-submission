@@ -80,9 +80,18 @@ const Index = () => {
     const fetchData = async () => {
         setIsLoding(true)
         const result = await dispatch(fetchMeetingData())
-        if (result.payload.status === 200) {
-            setData(result?.payload?.data);
+        // Add this log to debug
+        console.log("fetchMeetingData result:", result);
+        console.log("Meeting data for table:", result.payload.data);
+        // Fix: extract the array from result.payload.data.data
+        if (result.payload && result.payload.data && Array.isArray(result.payload.data.data)) {
+            setData(result.payload.data.data);
+        } else if (Array.isArray(result.payload)) {
+            setData(result.payload);
+        } else if (result.payload && Array.isArray(result.payload.data)) {
+            setData(result.payload.data);
         } else {
+            setData([]);
             toast.error("Failed to fetch data", "error");
         }
         setIsLoding(false)

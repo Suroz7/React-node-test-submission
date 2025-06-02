@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+require('./lead.js'); // Ensure lead schema is loaded
 const fetchSchemaFields = async () => {
     const CustomFieldModel = mongoose.model('CustomField');
     return await CustomFieldModel.find({ moduleName: "Contacts" });
@@ -7,8 +7,8 @@ const fetchSchemaFields = async () => {
 
 const contactSchema = new mongoose.Schema({
     // 1. Basic Information
-    // firstName: String,
-    // lastName: String,
+ firstName: String,
+    lastName: String,
     // title: String,
     // email: String,
     // phoneNumber: Number,
@@ -17,8 +17,8 @@ const contactSchema = new mongoose.Schema({
     // mailingAddress: String,
     // preferredContactMethod: String,
     // // 2.Lead Source Information
-    // leadSource: String,
-    // referralSource: String,
+     leadSource: String,
+    referralSource: String,
     // campaignSource: String,
     // // 3. Status and Classifications
     // leadStatus: String,
@@ -82,5 +82,5 @@ const initializeContactSchema = async () => {
     });
 };
 
-const Contact = mongoose.model('Contacts', contactSchema, 'Contacts');
+const Contact = mongoose.model('Contact', contactSchema, 'Contacts');
 module.exports = { Contact, initializeContactSchema };
